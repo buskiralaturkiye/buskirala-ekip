@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "288465800729-1kqc813h39n5aurulhrvr9cg0rhb6krn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.buskirala.buskirala_ekip",
+            "certificate_hash": "9ee79c737f015be3d496f6588a2ae194c24a24e1"
+          }
+        },
+        {
           "client_id": "288465800729-ul5dddf2uqvp37nsfoft0v7m8jd7kt46.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

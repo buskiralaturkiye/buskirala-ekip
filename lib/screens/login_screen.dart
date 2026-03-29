@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'home_screen.dart';
 import 'register_screen.dart';
 
@@ -25,27 +26,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     setState(() => _isLoading = true);
     try {
-      final userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      final user = userCredential.user;
-
-      await http.post(
-        Uri.parse('https://www.buskirala.com/wp-admin/admin-ajax.php'),
-        body: {
-          'action': 'bk_mobile_api',
-          'secret': 'BuskiralaApp2026',
-          'command': 'register',
-          'email': user?.email ?? '',
-          'reg_email': user?.email ?? '',
-          'reg_password': _passwordController.text.trim(),
-          'reg_name': user?.displayName ?? 'Kullanıcı',
-          'reg_phone': '',
-        },
-      );
-
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -53,19 +37,56 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
-      String msg;
-      if (e.code == 'user-not-found') {
-        msg = 'Bu e-posta ile kayıtlı kullanıcı bulunamadı.';
-      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
-        msg = 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.';
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        await _loginViaWordPress();
+      } else if (e.code == 'wrong-password') {
+        _showSnack('Şifre hatalı. Lütfen tekrar deneyin.', Colors.red);
       } else if (e.code == 'invalid-email') {
-        msg = 'Geçersiz e-posta adresi.';
+        _showSnack('Geçersiz e-posta adresi.', Colors.red);
       } else {
-        msg = 'Giriş hatası: ${e.code}';
+        _showSnack('Giriş hatası: ${e.code}', Colors.red);
       }
-      _showSnack(msg, Colors.red);
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loginViaWordPress() async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://www.buskirala.com/api/mobile-api.php'),
+        body: {
+          'secret': 'BuskiralaApp2026',
+          'command': 'login',
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text.trim(),
+        },
+      );
+
+      final result = json.decode(response.body);
+
+      if (result['success'] == true) {
+        final credential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+        await credential.user?.updateDisplayName(
+          result['data']['name'] ?? 'Kullanıcı',
+        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      } else if (result['data'] == 'GOOGLE_AUTH_USER') {
+        await _signInWithGoogle();
+      } else {
+        _showSnack('E-posta veya şifre hatalı.', Colors.red);
+      }
+    } catch (e) {
+      _showSnack('Bağlantı hatası: $e', Colors.red);
     }
   }
 
@@ -88,14 +109,13 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = userCredential.user;
 
       await http.post(
-        Uri.parse('https://www.buskirala.com/wp-admin/admin-ajax.php'),
+        Uri.parse('https://www.buskirala.com/api/mobile-api.php'),
         body: {
-          'action': 'bk_mobile_api',
           'secret': 'BuskiralaApp2026',
           'command': 'register',
           'email': user?.email ?? '',
           'reg_email': user?.email ?? '',
-          'reg_password': user?.uid ?? '',
+          'reg_password': 'GOOGLE_AUTH_USER',
           'reg_name': user?.displayName ?? 'Kullanıcı',
           'reg_phone': '',
         },
@@ -160,23 +180,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 40),
-
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: _inputDec('E-posta', Icons.email_outlined),
               ),
               const SizedBox(height: 16),
-
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: _inputDec('Şifre', Icons.lock_outlined).copyWith(
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
                       color: Colors.grey,
                     ),
                     onPressed: () =>
@@ -185,7 +201,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -197,7 +212,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -220,7 +234,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
               Row(
                 children: const [
                   Expanded(child: Divider()),
@@ -232,7 +245,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -256,7 +268,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
