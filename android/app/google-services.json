@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "288465800729",
+    "project_id": "buskirala-ekip",
+    "storage_bucket": "buskirala-ekip.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288465800729:android:e683f719d7d005b7e96488",
+        "android_client_info": {
+          "package_name": "com.buskirala.buskirala_ekip"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "288465800729-ul5dddf2uqvp37nsfoft0v7m8jd7kt46.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.buskirala.buskirala_ekip",
+            "certificate_hash": "82317c61d7ae26b3e9df3847b0a7f1a6ffe417be"
+          }
+        },
+        {
+          "client_id": "288465800729-vvm5fl36k7n35b91ivl6dvut6jr7qdtf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.buskirala.buskirala_ekip",
+            "certificate_hash": "c2473dcff5fb359f43afb7db12a72cf9695f2002"
+          }
+        },
+        {
+          "client_id": "288465800729-jck2agj2f63ikfdupdoo3j7i3ss1d6re.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjIFnzMkW7oyRE4jdhwL7W9WNNaAcTbz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "288465800729-jck2agj2f63ikfdupdoo3j7i3ss1d6re.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "288465800729-uf1l4h6ni1ejks59qftkamnojh6fqtrd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.buskirala.buskiralaEkip"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
