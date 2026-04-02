@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home_screen.dart';
@@ -129,6 +130,59 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       _showSnack('Google ile giriş başarısız: $e', Colors.red);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    setState(() => _isLoading = true);
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final oAuthProvider = OAuthProvider('apple.com');
+      final credential = oAuthProvider.credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      final displayName =
+          '${appleCredential.givenName ?? ''} ${appleCredential.familyName ?? ''}'.trim();
+
+      if (displayName.isNotEmpty) {
+        await user?.updateDisplayName(displayName);
+      }
+
+      await http.post(
+        Uri.parse('https://www.buskirala.com/api/mobile-api.php'),
+        body: {
+          'secret': 'BuskiralaApp2026',
+          'command': 'register',
+          'email': user?.email ?? appleCredential.email ?? '',
+          'reg_email': user?.email ?? appleCredential.email ?? '',
+          'reg_password': 'APPLE_AUTH_USER',
+          'reg_name': displayName.isNotEmpty ? displayName : 'Kullanıcı',
+          'reg_phone': '',
+        },
+      );
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      _showSnack('Apple ile giriş başarısız: $e', Colors.red);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -264,6 +318,26 @@ class _LoginScreenState extends State<LoginScreen> {
                     'Google ile Giriş Yap',
                     style: TextStyle(
                         color: Colors.black87, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _signInWithApple,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.black),
+                    backgroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.apple, color: Colors.white, size: 24),
+                  label: const Text(
+                    'Apple ile Giriş Yap',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
