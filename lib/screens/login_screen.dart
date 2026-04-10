@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'home_screen.dart';
 import 'register_screen.dart';
@@ -189,17 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _resetPassword() async {
-    if (_emailController.text.isEmpty) {
-      _showSnack('Lütfen önce e-posta adresinizi girin.', Colors.orange);
-      return;
-    }
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: _emailController.text.trim(),
-      );
-      _showSnack('Şifre sıfırlama e-postası gönderildi.', Colors.green);
-    } catch (e) {
-      _showSnack('Hata oluştu. E-postayı kontrol edin.', Colors.red);
+    final uri = Uri.parse('https://www.buskirala.com/transfer-aracima-is-bul/');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
